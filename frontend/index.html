@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aegis / AgentGuard Dashboard</title>
+    <style>
+        body { font-family: monospace; background-color: #0a0a0a; color: #e5e7eb; padding: 2rem; }
+        .event-card { background: #111827; border: 1px solid #374151; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; }
+        .ALLOW { color: #10b981; border-color: #10b981; }
+        .KILLSWITCH { color: #ef4444; border-color: #ef4444; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Aegis Dashboard v1</h1>
+    <div id="feed">Loading events...</div>
+
+    <script>
+        // In a real browser, fetching a local file requires a dev server. 
+        // Run `python -m http.server 3000` in your root folder and visit localhost:3000/frontend
+        async function loadEvents() {
+            try {
+                const response = await fetch('../data/events.json');
+                const events = await response.json();
+                const feed = document.getElementById('feed');
+                feed.innerHTML = events.map(evt => `
+                    <div class="event-card">
+                        <div style="font-size: 0.8rem; color: #6b7280">${evt.timestamp}</div>
+                        <strong>${evt.tool_name}</strong>
+                        <span class="badge ${evt.decision}"> [${evt.decision} - Risk: ${evt.risk_score}]</span>
+                        <div style="font-size: 0.9rem; margin-top: 0.5rem; color: #9ca3af;">Args: ${evt.tool_args}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('feed').innerHTML = "Error loading data. Make sure you are running a local dev server.";
+            }
+        }
+        loadEvents();
+    </script>
+</body>
+</html>
