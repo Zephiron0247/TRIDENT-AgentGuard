@@ -8,6 +8,17 @@ Built for the **Exasol AI Build Challenge 2026** (Autonomous Agents track) — E
 
 ---
 
+## 🎬 Submission Materials
+
+**Team VNT — VIT Chennai**
+
+| Material      | Link                                                                                                          |
+| ------------- | ------------------------------------------------------------------------------------------------------------- |
+| 🎥 Demo Video | [Watch on Google Drive](https://drive.google.com/drive/folders/1Q4CtNy--9riIL0AgT6_fWlCK6XDT2q2j?usp=sharing) |
+| 📊 Pitch Deck | [View on Google Drive](https://drive.google.com/drive/folders/1Q4CtNy--9riIL0AgT6_fWlCK6XDT2q2j?usp=sharing)  |
+
+> Both files live in the same shared Google Drive folder — GitHub can't preview Drive content inline, so please open the link directly in your browser (and make sure you're signed in / the folder is set to "Anyone with the link") to view the video and deck.
+
 ## 📖 Table of Contents
 
 - [The Problem](#-the-problem)
@@ -356,5 +367,16 @@ We'd rather state these plainly than have them discovered:
 - Multi-agent trajectory correlation (detecting coordinated risk across multiple agents in one workflow)
 
 ---
+
+## 📦 Submission Package
+
+This repository contains the complete TRIDENT source code, trained model artifacts, dashboard, documentation, run instructions, and supporting research material.
+
+The final pitch deck and demonstration video are available in the shared submission folder below (GitHub cannot embed or preview Google Drive content, so click through to view them):
+
+| Material      | Link                                                                                                          |
+| ------------- | ------------------------------------------------------------------------------------------------------------- |
+| 🎥 Demo Video | [Watch on Google Drive](https://drive.google.com/drive/folders/1Q4CtNy--9riIL0AgT6_fWlCK6XDT2q2j?usp=sharing) |
+| 📊 Pitch Deck | [View on Google Drive](https://drive.google.com/drive/folders/1Q4CtNy--9riIL0AgT6_fWlCK6XDT2q2j?usp=sharing)  |
 
 <p align="center">Built for the Exasol AI Build Challenge 2026 · Autonomous Agents Track</p>
