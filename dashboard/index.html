@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRIDENT — AgentGuard Security Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-base: #080c14;
+      --bg-surface: #0e1524;
+      --bg-card: #131c2e;
+      --bg-card-hover: #19253d;
+      --bg-card-selected: #1c2b47;
+      
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-medium: rgba(255, 255, 255, 0.12);
+      --border-bright: rgba(56, 189, 248, 0.3);
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --cyan-primary: #38bdf8;
+      --cyan-glow: rgba(56, 189, 248, 0.15);
+      --blue-accent: #0284c7;
+      
+      --color-allow: #10b981;
+      --color-allow-bg: rgba(16, 185, 129, 0.1);
+      --color-flagged: #f59e0b;
+      --color-flagged-bg: rgba(245, 158, 11, 0.1);
+      --color-block: #f97316;
+      --color-block-bg: rgba(249, 115, 22, 0.12);
+      --color-killswitch: #ef4444;
+      --color-killswitch-bg: rgba(239, 68, 68, 0.15);
+      --color-killswitch-glow: rgba(239, 68, 68, 0.3);
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', "SF Mono", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 1rem 1.25rem;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    .app-container {
+      max-width: 1840px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* HEADER */
+    header.main-header {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo-img {
+      height: 42px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 2.5px;
+      color: var(--text-main);
+      line-height: 1.1;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      margin-top: 0.15rem;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    /* Live Badge */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-family: var(--font-mono);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: var(--color-allow);
+    }
+
+    .live-badge.disconnected {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: var(--color-killswitch);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: currentColor;
+      box-shadow: 0 0 6px currentColor;
+      animation: pulseAnim 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseAnim {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Integrated Header Telemetry KPIs */
+    .kpi-bar {
+      display: flex;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .kpi-item {
+      padding: 0.45rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-right: 1px solid var(--border-subtle);
+      min-width: 95px;
+    }
+
+    .kpi-item:last-child { border-right: none; }
+
+    .kpi-label {
+      font-size: 0.64rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .kpi-value {
+      font-family: var(--font-mono);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .kpi-item.killswitch-kpi {
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    .kpi-item.killswitch-kpi .kpi-label {
+      color: #fca5a5;
+    }
+
+    .kpi-item.killswitch-kpi .kpi-value {
+      color: var(--color-killswitch);
+      text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+    }
+
+    /* GRID LAYOUT: 1920x1080 OPTIMIZED */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 2.3fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 1400px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 1rem 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 0.6rem;
+    }
+
+    .panel-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--cyan-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .panel-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    /* Session Selector Dropdown */
+    select.session-select {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-medium);
+      border-radius: 4px;
+      padding: 0.25rem 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.15s ease;
+    }
+
+    select.session-select:hover {
+      border-color: var(--cyan-primary);
+    }
+
+    /* SVG CHART CONTAINER */
+    .chart-box {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    svg.risk-chart {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* EVENT STREAM TABLE */
+    .table-box {
+      max-height: 380px;
+      overflow-y: auto;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+    }
+
+    table.events-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.82rem;
+    }
+
+    table.events-table th {
+      background: var(--bg-card);
+      color: var(--text-muted);
+      padding: 0.6rem 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.68rem;
+      letter-spacing: 0.8px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    table.events-table tr {
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    table.events-table tr:hover {
+      background: var(--bg-card-hover);
+    }
+
+    table.events-table tr.selected {
+      background: var(--bg-card-selected);
+      border-left: 3px solid var(--cyan-primary);
+    }
+
+    table.events-table tr.is-killswitch-row {
+      border-left: 3px solid var(--color-killswitch);
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    table.events-table tr.is-killswitch-row.selected {
+      background: rgba(239, 68, 68, 0.12);
+    }
+
+    table.events-table td {
+      padding: 0.55rem 0.85rem;
+      white-space: nowrap;
+    }
+
+    .font-mono { font-family: var(--font-mono); }
+
+    /* BADGES */
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge.allow { background: var(--color-allow-bg); color: var(--color-allow); border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge.allow_flagged { background: var(--color-flagged-bg); color: var(--color-flagged); border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge.block { background: var(--color-block-bg); color: var(--color-block); border: 1px solid rgba(249, 115, 22, 0.4); }
+    .badge.killswitch { 
+      background: var(--color-killswitch-bg); 
+      color: var(--color-killswitch); 
+      border: 1px solid rgba(239, 68, 68, 0.5); 
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+    }
+
+    /* Trigger Indicator */
+    .trigger-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      color: #fbbf24;
+      font-weight: 700;
+      font-size: 0.68rem;
+      margin-left: 0.4rem;
+      background: rgba(251, 191, 36, 0.12);
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+
+    /* RIGHT SIDE INTELLIGENCE / THREAT PANEL */
+    .verdict-hero-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .verdict-hero-box.killswitch-hero {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.08);
+      box-shadow: inset 0 0 15px rgba(239, 68, 68, 0.1);
+    }
+
+    .verdict-score-display {
+      text-align: right;
+    }
+
+    .verdict-score-num {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    /* UNIFIED SIGNAL INSTRUMENT */
+    .signals-instrument {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 0.85rem;
+    }
+
+    .signal-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .signal-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+    }
+
+    .signal-label { color: var(--text-muted); font-weight: 500; }
+    .signal-val-num { font-family: var(--font-mono); font-weight: 700; color: var(--text-main); }
+    .signal-label.is-dom { color: var(--cyan-primary); font-weight: 700; }
+
+    .signal-track {
+      height: 5px;
+      background: var(--bg-surface);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .signal-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue-accent), var(--cyan-primary));
+      border-radius: 3px;
+      transition: width 0.35s ease;
+    }
+
+    .signal-fill.is-final {
+      background: linear-gradient(90deg, #f97316, var(--color-killswitch));
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+    }
+
+    /* EXPLANATION BOX */
+    .explanation-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 0.75rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .exp-title {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .exp-body {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    /* BOTTOM GRID: SESSION TRAJECTORY & ARCHITECTURE */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 1100px) {
+      .bottom-grid { grid-template-columns: 1fr; }
+    }
+
+    /* TIMELINE INCIDENT INSPECTOR */
+    .timeline-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .timeline-node {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
+      padding: 0.45rem 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .timeline-node.has-trigger {
+      border-color: rgba(249, 115, 22, 0.4);
+      background: rgba(249, 115, 22, 0.05);
+    }
+
+    .timeline-node.has-killswitch {
+      border-color: rgba(239, 68, 68, 0.5);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .step-idx {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-weight: 700;
+      min-width: 22px;
+    }
+
+    /* 6-LAYER ARCHITECTURE OVERVIEW */
+    .arch-grid-6 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .arch-grid-6 { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .arch-box-cell {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
+      padding: 0.55rem 0.7rem;
+    }
+
+    .arch-box-cell h4 {
+      font-size: 0.75rem;
+      color: var(--cyan-primary);
+      font-weight: 700;
+      margin-bottom: 0.15rem;
+    }
+
+    .arch-box-cell p {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      line-height: 1.25;
+    }
+
+    /* BENCHMARK & SHAP CARDS */
+    .research-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 900px) {
+      .research-grid { grid-template-columns: 1fr; }
+    }
+
+    .res-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .metrics-6-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.35rem;
+      text-align: center;
+    }
+
+    .m-pill {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 0.25rem 0.1rem;
+    }
+
+    .m-lbl { font-size: 0.6rem; color: var(--text-dim); font-weight: 600; }
+    .m-val { font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700; color: var(--cyan-primary); }
+
+    .empty-state {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- HEADER -->
+    <header class="main-header">
+      <div class="brand-section">
+        <!-- TRIDENT Logo -->
+        <img 
+          src="assets/trident-logo.png" 
+          alt="TRIDENT Emblem" 
+          class="logo-img" 
+          onerror="this.src='assets/trident-logo.png.png';"
+        />
+        <div class="brand-text">
+          <div class="brand-title">TRIDENT</div>
+          <div class="brand-subtitle">AgentGuard — Autonomous Agent Runtime Security</div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Live Status Badge -->
+        <div id="live-badge" class="live-badge">
+          <span class="pulse-dot"></span>
+          <span id="live-text">LIVE</span>
+        </div>
+
+        <!-- Integrated Telemetry KPIs -->
+        <div class="kpi-bar">
+          <div class="kpi-item">
+            <span class="kpi-label">Sessions</span>
+            <span id="kpi-sessions" class="kpi-value">0</span>
+          </div>
+          <div class="kpi-item">
+            <span class="kpi-label">Events</span>
+            <span id="kpi-events" class="kpi-value">0</span>
+          </div>
+          <div class="kpi-item">
+            <span class="kpi-label">Blocked</span>
+            <span id="kpi-blocked" class="kpi-value" style="color: var(--color-block);">0</span>
+          </div>
+          <div class="kpi-item killswitch-kpi">
+            <span class="kpi-label">Killswitches</span>
+            <span id="kpi-killed" class="kpi-value">0</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN GRID: TELEMETRY & THREAT ANALYSIS -->
+    <div class="main-grid">
+      
+      <!-- LEFT: RISK TELEMETRY & LIVE EVENT STREAM -->
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        
+        <!-- RISK CHART PANEL -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Runtime Risk Telemetry</div>
+              <div class="panel-subtitle">Real-time risk trajectory analysis (0.00 – 1.00)</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.72rem; color: var(--text-dim);">Session Filter:</span>
+              <select id="session-select" class="session-select" onchange="onSessionChange(this.value)">
+                <option value="ALL">All Active Sessions</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- SVG Risk Chart Box -->
+          <div class="chart-box">
+            <svg id="risk-chart" class="risk-chart" viewBox="0 0 840 180" preserveAspectRatio="none"></svg>
+          </div>
+        </div>
+
+        <!-- LIVE EVENT STREAM TABLE -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Live Event Stream</div>
+              <div class="panel-subtitle">Real-time tool invocation feed (Click row to inspect intelligence)</div>
+            </div>
+            <div id="event-feed-count" style="font-size: 0.72rem; color: var(--text-dim);">Showing 0 events</div>
+          </div>
+
+          <div class="table-box">
+            <table class="events-table">
+              <thead>
+                <tr>
+                  <th>Session ID</th>
+                  <th>Agent ID</th>
+                  <th>Tool Name</th>
+                  <th>Decision</th>
+                  <th>Risk Score</th>
+                  <th>Explanation</th>
+                </tr>
+              </thead>
+              <tbody id="events-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: THREAT ANALYSIS INTELLIGENCE PANEL -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Threat Analysis & Intelligence</div>
+            <div class="panel-subtitle">Multi-signal hybrid scoring verdict for selected event</div>
+          </div>
+        </div>
+
+        <!-- CURRENT VERDICT HERO -->
+        <div id="verdict-hero" class="verdict-hero-box">
+          <div>
+            <div style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.8px;">Current Verdict</div>
+            <div id="hero-decision-badge" class="badge allow" style="margin-top: 0.25rem; font-size: 0.8rem; padding: 0.25rem 0.65rem;">ALLOW</div>
+          </div>
+          <div class="verdict-score-display">
+            <div style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.8px;">Risk Score</div>
+            <div id="hero-risk-score" class="verdict-score-num" style="color: var(--color-allow);">0.00</div>
+          </div>
+        </div>
+
+        <!-- UNIFIED SIGNAL INSTRUMENT -->
+        <div class="signals-instrument">
+          <div style="font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dim); font-weight: 700; margin-bottom: 0.2rem;">
+            Signal Breakdown Matrix
+          </div>
+          <div id="signals-matrix-container" style="display: flex; flex-direction: column; gap: 0.45rem;"></div>
+        </div>
+
+        <!-- EXPLANATION BOX -->
+        <div class="explanation-box">
+          <div class="exp-title">Why TRIDENT Decided This</div>
+          <div id="hero-explanation-text" class="exp-body">Select an event from the feed to inspect runtime decision rationale.</div>
+        </div>
+
+        <!-- TRIGGER REASON BOX -->
+        <div class="explanation-box" style="border-color: rgba(249, 115, 22, 0.2);">
+          <div class="exp-title" style="color: var(--color-block);">Trigger Localization</div>
+          <div id="hero-trigger-text" class="exp-body" style="color: var(--text-main);">N/A (Standard tool execution step)</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM GRID: INCIDENT TIMELINE & ARCHITECTURE -->
+    <div class="bottom-grid">
+      
+      <!-- SESSION INCIDENT TIMELINE -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Session Trajectory Inspector</div>
+            <div class="panel-subtitle">Sequential invocation trajectory for target session</div>
+          </div>
+          <div id="session-target-id" class="font-mono" style="font-size: 0.75rem; color: var(--cyan-primary);">No session target</div>
+        </div>
+
+        <div id="timeline-container" class="timeline-list">
+          <div class="empty-state">Select a session to inspect trajectory workflow.</div>
+        </div>
+      </div>
+
+      <!-- 6-LAYER ARCHITECTURE & BENCHMARK VALIDATION -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Detection Architecture & Research</div>
+            <div class="panel-subtitle">6-Layer Runtime Guardrail Engine & Benchmark Validation</div>
+          </div>
+        </div>
+
+        <!-- 6-Layer Architecture Layout -->
+        <div class="arch-grid-6">
+          <div class="arch-box-cell">
+            <h4>1. Step Guardrails</h4>
+            <p>Deterministic sensitive tool hit rules (ToolSafe style).</p>
+          </div>
+          <div class="arch-box-cell">
+            <h4>2. RandomForest ML</h4>
+            <p>Trained classifier evaluating timing gap velocity.</p>
+          </div>
+          <div class="arch-box-cell">
+            <h4>3. Anomaly Layer</h4>
+            <p>IsolationForest density estimator for outlier detection.</p>
+          </div>
+          <div class="arch-box-cell">
+            <h4>4. GRU Sequence</h4>
+            <p>Recurrent model evaluating order-aware trajectory semantics.</p>
+          </div>
+          <div class="arch-box-cell">
+            <h4>5. URL Heuristics</h4>
+            <p>Domain, IP host & prompt path safety verifier.</p>
+          </div>
+          <div class="arch-box-cell">
+            <h4>6. Trigger Localization</h4>
+            <p>Delta-score step isolator pinpointing escalation causes.</p>
+          </div>
+        </div>
+
+        <!-- SHAP & Oliveira Benchmark Cards -->
+        <div class="research-grid">
+          
+          <div class="res-card">
+            <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">Top SHAP Features</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.15rem;">
+              <span>1. <strong style="color: var(--cyan-primary);">avg_time_gap</strong></span>
+              <span>2. <strong style="color: var(--cyan-primary);">sensitive_tool_count</strong></span>
+              <span>3. <strong style="color: var(--cyan-primary);">max_time_gap</strong></span>
+            </div>
+            <div style="font-size: 0.65rem; color: var(--text-dim); font-style: italic;">
+              SHAP explainability available in offline model analysis.
+            </div>
+          </div>
+
+          <div class="res-card">
+            <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">
+              Independent Validation (Oliveira Malware API Benchmark, 43,876 Sequences)
+            </div>
+            <div class="metrics-6-grid">
+              <div class="m-pill"><div class="m-lbl">ROC-AUC</div><div class="m-val">0.7725</div></div>
+              <div class="m-pill"><div class="m-lbl">PR-AUC</div><div class="m-val">0.9914</div></div>
+              <div class="m-pill"><div class="m-lbl">F1</div><div class="m-val">0.5656</div></div>
+              <div class="m-pill"><div class="m-lbl">PRECISION</div><div class="m-val">0.9932</div></div>
+              <div class="m-pill"><div class="m-lbl">RECALL</div><div class="m-val">0.3953</div></div>
+              <div class="m-pill"><div class="m-lbl">FPR</div><div class="m-val">10.65%</div></div>
+            </div>
+            <div style="font-size: 0.65rem; color: var(--text-dim); font-style: italic; line-height: 1.2;">
+              Independent sequence-model validation; this dataset is not AgentGuard telemetry and does not establish direct generalization to AI-agent tool calls.
+            </div>
+          </div>
+
+        </div>
+
+        <div style="font-size: 0.68rem; color: var(--text-dim); font-family: var(--font-mono);">
+          References: ToolSafe (arXiv:2601.10156) | Trajectory Guard (arXiv:2601.00516) | TrajAD (arXiv:2602.06443)
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:8000/events";
+    const POLL_MS = 2000;
+
+    let rawEvents = [];
+    let activeSessionFilter = "ALL";
+    let activeCallId = null;
+
+    // Fallback events dataset if backend API is temporarily offline
+    const FALLBACK_EVENTS = [
+      {
+        call_id: "fb-04",
+        session_id: "demo-session-2",
+        agent_id: "demo-bot",
+        stated_goal: "summarize quarterly report",
+        tool_name: "export_database",
+        tool_args: '{"table": "customers", "format": "csv"}',
+        risk_score: "1.00",
+        decision: "killswitch",
+        explanation: "final=1.00, trusted=1.00 (rule=0.60, ml=1.00, anomaly=0.85, sequence=0.92, url=0.00). Strongest signal: ml. sequence corroborated the decision.",
+        is_trigger_step: true,
+        trigger_reason: "Trajectory triggered killswitch at export_database",
+        called_at: new Date(Date.now() - 4000).toISOString()
+      },
+      {
+        call_id: "fb-03",
+        session_id: "demo-session-2",
+        agent_id: "demo-bot",
+        stated_goal: "summarize quarterly report",
+        tool_name: "access_credentials",
+        tool_args: '{"vault": "finance-prod"}',
+        risk_score: "0.72",
+        decision: "block",
+        explanation: "final=0.72, trusted=0.72 (rule=0.60, ml=0.72, anomaly=0.40, sequence=0.55, url=0.00). Strongest signal: ml. sequence corroborated the decision.",
+        is_trigger_step: true,
+        trigger_reason: "Trajectory crossed the critical threshold at access_credentials",
+        called_at: new Date(Date.now() - 12000).toISOString()
+      },
+      {
+        call_id: "fb-02",
+        session_id: "demo-session-2",
+        agent_id: "demo-bot",
+        stated_goal: "summarize quarterly report",
+        tool_name: "read_customer_data",
+        tool_args: '{"segment": "enterprise"}',
+        risk_score: "0.13",
+        decision: "allow",
+        explanation: "final=0.13, trusted=0.13 (rule=0.30, ml=0.13, anomaly=0.00, sequence=0.10, url=0.00). Strongest signal: rule.",
+        is_trigger_step: false,
+        trigger_reason: null,
+        called_at: new Date(Date.now() - 20000).toISOString()
+      },
+      {
+        call_id: "fb-01",
+        session_id: "demo-session-2",
+        agent_id: "demo-bot",
+        stated_goal: "summarize quarterly report",
+        tool_name: "search_documents",
+        tool_args: '{"query": "Q2 report draft"}',
+        risk_score: "0.16",
+        decision: "allow",
+        explanation: "final=0.16, trusted=0.16 (rule=0.00, ml=0.16, anomaly=0.00, sequence=0.05, url=0.00). Strongest signal: ml.",
+        is_trigger_step: false,
+        trigger_reason: null,
+        called_at: new Date(Date.now() - 28000).toISOString()
+      }
+    ];
+
+    function safeScore(val) {
+      if (val === null || val === undefined) return 0.0;
+      const n = parseFloat(val);
+      return isNaN(n) ? 0.0 : n;
+    }
+
+    function parseExplanationSignals(str) {
+      const sigs = { rule: null, ml: null, anomaly: null, sequence: null, url: null, trusted: null, final: null, dominant: null };
+      if (!str || typeof str !== 'string') return sigs;
+
+      const f = str.match(/final=([\d\.]+)/); if (f) sigs.final = parseFloat(f[1]);
+      const t = str.match(/trusted=([\d\.]+)/); if (t) sigs.trusted = parseFloat(t[1]);
+      const r = str.match(/rule=([\d\.]+)/); if (r) sigs.rule = parseFloat(r[1]);
+      const m = str.match(/ml=([\d\.]+)/); if (m) sigs.ml = parseFloat(m[1]);
+      const a = str.match(/anomaly=([\d\.]+)/); if (a) sigs.anomaly = parseFloat(a[1]);
+      const s = str.match(/sequence=([\d\.]+)/); if (s) sigs.sequence = parseFloat(s[1]);
+      const u = str.match(/url=([\d\.]+)/); if (u) sigs.url = parseFloat(u[1]);
+      const d = str.match(/Strongest signal:\s*([\w]+)/i); if (d) sigs.dominant = d[1];
+
+      return sigs;
+    }
+
+    async function fetchEvents() {
+      try {
+        const r = await fetch(API_URL);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        setLiveStatus(true);
+        if (Array.isArray(data) && data.length > 0) {
+          rawEvents = data;
+        } else {
+          rawEvents = [];
+        }
+      } catch (err) {
+        setLiveStatus(false);
+        if (rawEvents.length === 0) rawEvents = FALLBACK_EVENTS;
+      }
+
+      renderAll();
+    }
+
+    function setLiveStatus(online) {
+      const badge = document.getElementById("live-badge");
+      const txt = document.getElementById("live-text");
+      if (online) {
+        badge.className = "live-badge";
+        txt.textContent = "LIVE";
+      } else {
+        badge.className = "live-badge disconnected";
+        txt.textContent = "BACKEND DISCONNECTED";
+      }
+    }
+
+    function renderAll() {
+      updateKPIs();
+      updateSessionSelect();
+      renderTable();
+      renderChart();
+      renderThreatPanel();
+      renderTimeline();
+    }
+
+    function updateKPIs() {
+      const sessions = new Set(rawEvents.map(e => e.session_id));
+      let blocked = 0, killed = 0;
+      rawEvents.forEach(e => {
+        const d = (e.decision || '').toLowerCase();
+        if (d === 'block') blocked++;
+        if (d === 'killswitch') killed++;
+      });
+
+      document.getElementById('kpi-sessions').textContent = sessions.size;
+      document.getElementById('kpi-events').textContent = rawEvents.length;
+      document.getElementById('kpi-blocked').textContent = blocked;
+      document.getElementById('kpi-killed').textContent = killed;
+    }
+
+    function updateSessionSelect() {
+      const sel = document.getElementById("session-select");
+      const cur = sel.value;
+      const sessions = Array.from(new Set(rawEvents.map(e => e.session_id)));
+      
+      sel.innerHTML = '<option value="ALL">All Active Sessions</option>';
+      sessions.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        if (s === cur) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function onSessionChange(val) {
+      activeSessionFilter = val;
+      renderAll();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById("events-body");
+      tbody.innerHTML = "";
+
+      let filtered = rawEvents;
+      if (activeSessionFilter !== "ALL") {
+        filtered = rawEvents.filter(e => e.session_id === activeSessionFilter);
+      }
+
+      document.getElementById("event-feed-count").textContent = `Showing ${filtered.length} events`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No matching events</td></tr>';
+        return;
+      }
+
+      if (!activeCallId || !filtered.some(e => e.call_id === activeCallId)) {
+        activeCallId = filtered[0].call_id;
+      }
+
+      filtered.forEach(evt => {
+        const tr = document.createElement("tr");
+        const isSelected = evt.call_id === activeCallId;
+        const decision = (evt.decision || 'allow').toLowerCase();
+        const isKillswitch = decision === 'killswitch';
+        const isTrigger = evt.is_trigger_step === true || evt.is_trigger_step === 1 || evt.is_trigger_step === 'true';
+
+        if (isSelected) tr.classList.add("selected");
+        if (isKillswitch) tr.classList.add("is-killswitch-row");
+
+        tr.onclick = () => {
+          activeCallId = evt.call_id;
+          renderAll();
+        };
+
+        const score = safeScore(evt.risk_score);
+
+        tr.innerHTML = `
+          <td class="font-mono" style="color: var(--cyan-primary); font-weight: 600;">${escapeHtml(evt.session_id || '—')}</td>
+          <td class="font-mono" style="color: var(--text-muted);">${escapeHtml(evt.agent_id || '—')}</td>
+          <td style="font-weight: 600;">
+            ${escapeHtml(evt.tool_name || '—')}
+            ${isTrigger ? '<span class="trigger-indicator">⚠ TRIGGER</span>' : ''}
+          </td>
+          <td><span class="badge ${decision}">${decision}</span></td>
+          <td class="font-mono" style="font-weight: 700;">${score.toFixed(2)}</td>
+          <td style="color: var(--text-muted); max-width: 320px; overflow: hidden; text-overflow: ellipsis;">
+            ${escapeHtml(evt.explanation || evt.trigger_reason || '—')}
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // SVG RISK CHART REFINEMENT (Fixed x-axis overcrowding)
+    function renderChart() {
+      const svg = document.getElementById("risk-chart");
+      svg.innerHTML = "";
+
+      let chartEvents = [...rawEvents].reverse(); // Chronological order
+      if (activeSessionFilter !== "ALL") {
+        chartEvents = chartEvents.filter(e => e.session_id === activeSessionFilter);
+      }
+
+      if (chartEvents.length === 0) return;
+
+      const w = 840;
+      const h = 180;
+      const pad = { top: 20, right: 40, bottom: 25, left: 45 };
+      const gW = w - pad.left - pad.right;
+      const gH = h - pad.top - pad.bottom;
+
+      // Draw Threshold Lines (0.40, 0.70, 0.90)
+      const thresholds = [
+        { val: 0.9, label: "0.90 KILLSWITCH", color: "rgba(239, 68, 68, 0.45)" },
+        { val: 0.7, label: "0.70 BLOCK", color: "rgba(249, 115, 22, 0.45)" },
+        { val: 0.4, label: "0.40 FLAGGED", color: "rgba(245, 158, 11, 0.45)" }
+      ];
+
+      thresholds.forEach(t => {
+        const y = pad.top + gH * (1 - t.val);
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", pad.left);
+        line.setAttribute("y1", y);
+        line.setAttribute("x2", w - pad.right);
+        line.setAttribute("y2", y);
+        line.setAttribute("stroke", t.color);
+        line.setAttribute("stroke-dasharray", "4 4");
+        svg.appendChild(line);
+
+        const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        txt.setAttribute("x", w - pad.right + 5);
+        txt.setAttribute("y", y + 3);
+        txt.setAttribute("fill", t.color);
+        txt.setAttribute("font-size", "8.5");
+        txt.setAttribute("font-family", "var(--font-mono)");
+        txt.setAttribute("font-weight", "600");
+        txt.textContent = t.val.toFixed(2);
+        svg.appendChild(txt);
+      });
+
+      // Calculate Nodes
+      const nodes = chartEvents.map((evt, idx) => {
+        const ratio = chartEvents.length > 1 ? idx / (chartEvents.length - 1) : 0.5;
+        const x = pad.left + ratio * gW;
+        const score = safeScore(evt.risk_score);
+        const y = pad.top + gH * (1 - Math.min(1.0, Math.max(0.0, score)));
+        return { x, y, score, evt, idx };
+      });
+
+      // Area Path Gradient
+      if (nodes.length > 0) {
+        let pathD = `M ${nodes[0].x} ${nodes[0].y}`;
+        for (let i = 1; i < nodes.length; i++) pathD += ` L ${nodes[i].x} ${nodes[i].y}`;
+
+        const areaD = `${pathD} L ${nodes[nodes.length - 1].x} ${h - pad.bottom} L ${nodes[0].x} ${h - pad.bottom} Z`;
+        
+        const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+        defs.innerHTML = `
+          <linearGradient id="chartGlowGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--cyan-primary)" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="var(--cyan-primary)" stop-opacity="0.0"/>
+          </linearGradient>
+        `;
+        svg.appendChild(defs);
+
+        const area = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        area.setAttribute("d", areaD);
+        area.setAttribute("fill", "url(#chartGlowGrad)");
+        svg.appendChild(area);
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", pathD);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", "var(--cyan-primary)");
+        path.setAttribute("stroke-width", "2");
+        svg.appendChild(path);
+      }
+
+      // Draw Nodes & Clean Non-overlapping X-Labels
+      nodes.forEach(node => {
+        const isTrigger = node.evt.is_trigger_step === true || node.evt.is_trigger_step === 1 || node.evt.is_trigger_step === 'true';
+        const decision = (node.evt.decision || '').toLowerCase();
+        
+        let nodeColor = "var(--color-allow)";
+        if (decision === "killswitch" || node.score >= 0.9) nodeColor = "var(--color-killswitch)";
+        else if (decision === "block" || node.score >= 0.7) nodeColor = "var(--color-block)";
+        else if (decision === "allow_flagged" || node.score >= 0.4) nodeColor = "var(--color-flagged)";
+
+        if (isTrigger || decision === "killswitch" || decision === "block") {
+          const glow = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          glow.setAttribute("cx", node.x);
+          glow.setAttribute("cy", node.y);
+          glow.setAttribute("r", isTrigger ? "8" : "6");
+          glow.setAttribute("fill", "none");
+          glow.setAttribute("stroke", nodeColor);
+          glow.setAttribute("stroke-width", "1.5");
+          glow.setAttribute("opacity", "0.8");
+          svg.appendChild(glow);
+        }
+
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", node.x);
+        circle.setAttribute("cy", node.y);
+        circle.setAttribute("r", node.evt.call_id === activeCallId ? "5" : "3.5");
+        circle.setAttribute("fill", nodeColor);
+        circle.setAttribute("stroke", "var(--bg-card)");
+        circle.setAttribute("stroke-width", "1.5");
+        circle.style.cursor = "pointer";
+        circle.onclick = () => {
+          activeCallId = node.evt.call_id;
+          renderAll();
+        };
+
+        svg.appendChild(circle);
+
+        // CLEAN X-AXIS LABELS: Show only key events (triggers, killswitches, first/last) to prevent text overcrowding!
+        const showLabel = isTrigger || decision === 'killswitch' || decision === 'block' || node.idx === 0 || node.idx === nodes.length - 1;
+        if (showLabel) {
+          const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          txt.setAttribute("x", node.x);
+          txt.setAttribute("y", h - 8);
+          txt.setAttribute("fill", isTrigger || decision === 'killswitch' ? nodeColor : "var(--text-dim)");
+          txt.setAttribute("font-size", "8.5");
+          txt.setAttribute("font-family", "var(--font-mono)");
+          txt.setAttribute("font-weight", isTrigger ? "700" : "500");
+          txt.setAttribute("text-anchor", "middle");
+          txt.textContent = node.evt.tool_name || `step-${node.idx+1}`;
+          svg.appendChild(txt);
+        }
+      });
+    }
+
+    // RIGHT-SIDE INTELLIGENCE & THREAT ANALYSIS
+    function renderThreatPanel() {
+      const evt = rawEvents.find(e => e.call_id === activeCallId) || rawEvents[0];
+      if (!evt) return;
+
+      const parsed = parseExplanationSignals(evt.explanation);
+      
+      const ruleVal = evt.rule_score !== undefined ? evt.rule_score : parsed.rule;
+      const mlVal = evt.ml_score !== undefined ? evt.ml_score : parsed.ml;
+      const anomalyVal = evt.anomaly_score !== undefined ? evt.anomaly_score : parsed.anomaly;
+      const sequenceVal = evt.sequence_score !== undefined ? evt.sequence_score : parsed.sequence;
+      const urlVal = evt.url_score !== undefined ? evt.url_score : parsed.url;
+      const trustedVal = evt.trusted_score !== undefined ? evt.trusted_score : parsed.trusted;
+      const finalVal = evt.risk_score !== undefined ? safeScore(evt.risk_score) : (parsed.final ?? 0.0);
+      const dominantSignal = evt.dominant_signal || parsed.dominant || "rule";
+
+      const decision = (evt.decision || "allow").toLowerCase();
+      const isKillswitch = decision === "killswitch";
+      const isBlock = decision === "block";
+
+      // Hero verdict treatment
+      const heroBox = document.getElementById("verdict-hero");
+      const badgeEl = document.getElementById("hero-decision-badge");
+      const scoreEl = document.getElementById("hero-risk-score");
+
+      badgeEl.className = `badge ${decision}`;
+      badgeEl.textContent = decision;
+      scoreEl.textContent = finalVal.toFixed(2);
+
+      if (isKillswitch) {
+        heroBox.className = "verdict-hero-box killswitch-hero";
+        scoreEl.style.color = "var(--color-killswitch)";
+      } else if (isBlock) {
+        heroBox.className = "verdict-hero-box";
+        scoreEl.style.color = "var(--color-block)";
+      } else {
+        heroBox.className = "verdict-hero-box";
+        scoreEl.style.color = finalVal >= 0.4 ? "var(--color-flagged)" : "var(--color-allow)";
+      }
+
+      // Signal Instrument Bars
+      const matrixContainer = document.getElementById("signals-matrix-container");
+      const signals = [
+        { label: "Deterministic Rules", val: ruleVal, id: "rule" },
+        { label: "RandomForest ML", val: mlVal, id: "ml" },
+        { label: "Anomaly Layer", val: anomalyVal, id: "anomaly" },
+        { label: "GRU Sequence", val: sequenceVal, id: "sequence" },
+        { label: "URL Risk Signal", val: urlVal, id: "url" },
+        { label: "Authoritative Trusted", val: trustedVal, id: "trusted" },
+        { label: "Final Risk Score", val: finalVal, id: "final", isFinal: true }
+      ];
+
+      matrixContainer.innerHTML = signals.map(s => {
+        const valNum = (s.val !== null && s.val !== undefined) ? safeScore(s.val) : 0;
+        const valStr = (s.val !== null && s.val !== undefined) ? valNum.toFixed(2) : "N/A";
+        const percent = Math.min(100, Math.max(0, valNum * 100));
+        const isDom = dominantSignal.toLowerCase().includes(s.id);
+
+        return `
+          <div class="signal-row">
+            <div class="signal-meta">
+              <span class="signal-label ${isDom ? 'is-dom' : ''}">
+                ${s.label} ${isDom ? '★' : ''}
+              </span>
+              <span class="signal-val-num">${valStr}</span>
+            </div>
+            <div class="signal-track">
+              <div class="signal-fill ${s.isFinal ? 'is-final' : ''}" style="width: ${percent}%;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Threat Explanation & Trigger Localization
+      document.getElementById("hero-explanation-text").textContent = evt.explanation || "No threat explanation provided by backend.";
+
+      const isTrigger = evt.is_trigger_step === true || evt.is_trigger_step === 1 || evt.is_trigger_step === "true";
+      const triggerEl = document.getElementById("hero-trigger-text");
+
+      if (isTrigger) {
+        triggerEl.innerHTML = `<span style="color: var(--color-block); font-weight: 700;">⚠ TRIGGER STEP</span> — ${escapeHtml(evt.trigger_reason || 'Risk threshold escalation detected')}`;
+      } else {
+        triggerEl.textContent = "N/A (Standard tool execution step)";
+      }
+    }
+
+    // TIMELINE INSPECTOR FOR SESSION
+    function renderTimeline() {
+      const container = document.getElementById("timeline-container");
+      const targetBadge = document.getElementById("session-target-id");
+
+      const evt = rawEvents.find(e => e.call_id === activeCallId) || rawEvents[0];
+      const targetSession = (activeSessionFilter !== "ALL") ? activeSessionFilter : (evt ? evt.session_id : null);
+
+      if (!targetSession) {
+        targetBadge.textContent = "No session selected";
+        container.innerHTML = '<div class="empty-state">Select a session to inspect trajectory workflow.</div>';
+        return;
+      }
+
+      targetBadge.textContent = `Target: ${targetSession}`;
+
+      const sessionEvents = rawEvents
+        .filter(e => e.session_id === targetSession)
+        .reverse(); // Step 1 to N
+
+      if (sessionEvents.length === 0) {
+        container.innerHTML = '<div class="empty-state">No events for this session.</div>';
+        return;
+      }
+
+      container.innerHTML = sessionEvents.map((item, idx) => {
+        const score = safeScore(item.risk_score);
+        const decision = (item.decision || "allow").toLowerCase();
+        const isTrigger = item.is_trigger_step === true || item.is_trigger_step === 1 || item.is_trigger_step === "true";
+        const isKillswitch = decision === "killswitch";
+
+        let nodeClass = "";
+        if (isKillswitch) nodeClass = "has-killswitch";
+        else if (isTrigger || decision === "block") nodeClass = "has-trigger";
+
+        return `
+          <div class="timeline-node ${nodeClass}">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <span class="step-idx">0${idx + 1}</span>
+              <div>
+                <div style="font-weight: 700; color: var(--text-main); font-size: 0.8rem;">
+                  ${escapeHtml(item.tool_name || 'unknown')}
+                  ${isTrigger ? '<span class="trigger-indicator">⚠ TRIGGER</span>' : ''}
+                </div>
+                <div style="font-size: 0.68rem; color: var(--text-dim);">
+                  ${escapeHtml(formatTime(item.called_at))}
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <div class="font-mono" style="font-weight: 700; font-size: 0.8rem;">${score.toFixed(2)}</div>
+              <span class="badge ${decision}">${decision}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatTime(ts) {
+      if (!ts) return '—';
+      try {
+        return new Date(ts).toLocaleTimeString();
+      } catch (e) {
+        return ts;
+      }
+    }
+
+    // Initial load & poll loop
+    fetchEvents();
+    setInterval(fetchEvents, POLL_MS);
+  </script>
+</body>
+</html>

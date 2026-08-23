@@ -1,0 +1,13 @@
+{
+  "PAD": 0,
+  "UNK": 1,
+  "access_credentials": 2,
+  "delete_records": 3,
+  "export_database": 4,
+  "modify_permissions": 5,
+  "read_customer_data": 6,
+  "read_file": 7,
+  "search_docs": 8,
+  "send_email": 9,
+  "summarize": 10
+}

@@ -17,7 +17,10 @@ CREATE TABLE tool_calls (
     tool_args       VARCHAR(2000),
     risk_score      DECIMAL(4,3),
     decision        VARCHAR(20),   -- allow / block / killswitch
+    explanation     VARCHAR(1000),
     entailment_flag BOOLEAN,
+    is_trigger_step BOOLEAN,       -- true if this step caused a risk escalation
+    trigger_reason  VARCHAR(500),  -- human-readable cause of the trigger
     called_at       TIMESTAMP
 );
 

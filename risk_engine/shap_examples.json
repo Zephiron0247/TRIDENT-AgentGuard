@@ -1,0 +1,130 @@
+{
+  "disclaimer": "SHAP explanation of the existing risk_model.pkl RandomForest. Does not change live AgentGuard scoring.",
+  "model_path": "C:\\Users\\Lenovo\\agentguard\\risk_model.pkl",
+  "top_features_by_mean_abs_shap": [
+    {
+      "feature": "avg_time_gap",
+      "mean_abs_shap": 0.1614429988815414
+    },
+    {
+      "feature": "sensitive_tool_count",
+      "mean_abs_shap": 0.06807643186122793
+    },
+    {
+      "feature": "max_time_gap",
+      "mean_abs_shap": 0.03786464944305518
+    },
+    {
+      "feature": "min_time_gap",
+      "mean_abs_shap": 0.024446963103297893
+    },
+    {
+      "feature": "unique_tool_count",
+      "mean_abs_shap": 0.009328973721149906
+    },
+    {
+      "feature": "session_length",
+      "mean_abs_shap": 0.006495328837556516
+    }
+  ],
+  "examples": {
+    "benign": {
+      "feature_contributions": [
+        {
+          "feature": "sensitive_tool_count",
+          "value": 1.0,
+          "shap_contribution": -0.22535780128541558,
+          "direction": "decreases risk"
+        },
+        {
+          "feature": "max_time_gap",
+          "value": 1.0,
+          "shap_contribution": -0.006940627098078168,
+          "direction": "decreases risk"
+        },
+        {
+          "feature": "min_time_gap",
+          "value": 1.0,
+          "shap_contribution": -0.010185343669228117,
+          "direction": "decreases risk"
+        },
+        {
+          "feature": "avg_time_gap",
+          "value": 1.0,
+          "shap_contribution": 0.19000443602162329,
+          "direction": "increases risk"
+        },
+        {
+          "feature": "session_length",
+          "value": 4.0,
+          "shap_contribution": 0.0010000892778275954,
+          "direction": "increases risk"
+        },
+        {
+          "feature": "unique_tool_count",
+          "value": 4.0,
+          "shap_contribution": 0.006697996753270965,
+          "direction": "increases risk"
+        }
+      ],
+      "expected_value_base": 0.07478125000000001,
+      "shap_log_odds_total": -0.04478125000000002,
+      "risk_score_estimate_from_shap": 0.029999999999999985,
+      "trajectory": [
+        "search_docs",
+        "read_file",
+        "summarize",
+        "send_email"
+      ]
+    },
+    "malicious": {
+      "feature_contributions": [
+        {
+          "feature": "sensitive_tool_count",
+          "value": 3.0,
+          "shap_contribution": 0.1916326132972581,
+          "direction": "increases risk"
+        },
+        {
+          "feature": "max_time_gap",
+          "value": 1.0,
+          "shap_contribution": 0.030158944070530786,
+          "direction": "increases risk"
+        },
+        {
+          "feature": "min_time_gap",
+          "value": 1.0,
+          "shap_contribution": -0.007857780094000628,
+          "direction": "decreases risk"
+        },
+        {
+          "feature": "avg_time_gap",
+          "value": 1.0,
+          "shap_contribution": 0.40495346538706667,
+          "direction": "increases risk"
+        },
+        {
+          "feature": "session_length",
+          "value": 4.0,
+          "shap_contribution": -0.007239706684982807,
+          "direction": "decreases risk"
+        },
+        {
+          "feature": "unique_tool_count",
+          "value": 4.0,
+          "shap_contribution": 0.023571214024128918,
+          "direction": "increases risk"
+        }
+      ],
+      "expected_value_base": 0.07478125000000001,
+      "shap_log_odds_total": 0.6352187500000009,
+      "risk_score_estimate_from_shap": 0.710000000000001,
+      "trajectory": [
+        "search_docs",
+        "read_customer_data",
+        "access_credentials",
+        "export_database"
+      ]
+    }
+  }
+}
