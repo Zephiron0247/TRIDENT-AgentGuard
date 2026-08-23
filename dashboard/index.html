@@ -1170,7 +1170,42 @@
         svg.appendChild(path);
       }
 
-      // Draw Nodes & Clean Non-overlapping X-Labels
+      // Collision-aware label placement: prioritize killswitch / block /
+      // trigger and first/last events; enforce a minimum horizontal gap and a
+      // small label budget in "All Sessions" mode so text never overlaps.
+      // Every node still keeps a hover tooltip (SVG <title>) with its exact
+      // tool name, so no information is lost.
+      const labelNs = "http://www.w3.org/2000/svg";
+      const MIN_LABEL_GAP = 72;
+      const isAllMode = activeSessionFilter === "ALL";
+      const labelBudget = isAllMode ? 6 : nodes.length;
+      const candidates = nodes.map(node => {
+        const nTrigger = node.evt.is_trigger_step === true || node.evt.is_trigger_step === 1 || node.evt.is_trigger_step === 'true';
+        const nDecision = (node.evt.decision || '').toLowerCase();
+        let priority = 0;
+        if (nDecision === 'killswitch') priority = 100;
+        else if (nDecision === 'block') priority = 80;
+        else if (nTrigger) priority = 60;
+        if (node.idx === 0) priority = Math.max(priority, 50);
+        if (node.idx === nodes.length - 1) priority = Math.max(priority, 45);
+        return { node, priority };
+      });
+      candidates.sort((a, b) => (b.priority - a.priority) || (a.node.x - b.node.x));
+      const usedX = [];
+      let placed = 0;
+      const labelNodes = [];
+      for (const c of candidates) {
+        if (placed >= labelBudget) break;
+        let tooClose = false;
+        for (const ux of usedX) {
+          if (Math.abs(ux - c.node.x) < MIN_LABEL_GAP) { tooClose = true; break; }
+        }
+        if (tooClose) continue;
+        usedX.push(c.node.x);
+        placed++;
+        labelNodes.push(c.node);
+      }
+
       nodes.forEach(node => {
         const isTrigger = node.evt.is_trigger_step === true || node.evt.is_trigger_step === 1 || node.evt.is_trigger_step === 'true';
         const decision = (node.evt.decision || '').toLowerCase();
@@ -1205,20 +1240,30 @@
           renderAll();
         };
 
+        const tipTitle = document.createElementNS(labelNs, "title");
+        const tipDecision = (node.evt.decision || "allow").toUpperCase();
+        const tipSession = (node.evt.session_id || "").slice(-14);
+        tipTitle.textContent = `${node.evt.tool_name || "unknown"}  |  ${tipDecision}  |  risk ${node.score.toFixed(2)}${tipSession ? "  |  " + tipSession : ""}`;
+        circle.appendChild(tipTitle);
+
         svg.appendChild(circle);
 
-        // CLEAN X-AXIS LABELS: Show only key events (triggers, killswitches, first/last) to prevent text overcrowding!
-        const showLabel = isTrigger || decision === 'killswitch' || decision === 'block' || node.idx === 0 || node.idx === nodes.length - 1;
-        if (showLabel) {
-          const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        // LABELS: only for nodes that survived collision-aware selection above.
+        if (labelNodes.includes(node)) {
+          let labelText = node.evt.tool_name || `step-${node.idx + 1}`;
+          const maxLen = isAllMode ? 8 : 12;
+          if (labelText.length > maxLen + 1) {
+            labelText = labelText.slice(0, maxLen) + "…";
+          }
+          const txt = document.createElementNS(labelNs, "text");
           txt.setAttribute("x", node.x);
           txt.setAttribute("y", h - 8);
           txt.setAttribute("fill", isTrigger || decision === 'killswitch' ? nodeColor : "var(--text-dim)");
           txt.setAttribute("font-size", "8.5");
           txt.setAttribute("font-family", "var(--font-mono)");
-          txt.setAttribute("font-weight", isTrigger ? "700" : "500");
-          txt.setAttribute("text-anchor", "middle");
-          txt.textContent = node.evt.tool_name || `step-${node.idx+1}`;
+          txt.setAttribute("font-weight", (isTrigger || decision === "block" || decision === "killswitch") ? "700" : "500");
+          txt.setAttribute("text-anchor", decision === "killswitch" || decision === "block" || isTrigger ? "middle" : (node.idx === 0 ? "start" : "end"));
+          txt.textContent = labelText;
           svg.appendChild(txt);
         }
       });
