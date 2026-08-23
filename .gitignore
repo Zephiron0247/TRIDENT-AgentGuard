@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+
+# Environment / secrets
+.env
+
+# Exasol starter-kit credentials
+.exasol-starter-kit/
+
+# IDE
+.vscode/
