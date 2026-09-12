@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import re
 from urllib.parse import urlparse
+from typing import Any
 
 
 def _as_utc(timestamp: str | datetime) -> datetime:

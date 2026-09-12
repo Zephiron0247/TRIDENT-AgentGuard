@@ -9,5 +9,6 @@
   "read_file": 7,
   "search_docs": 8,
   "send_email": 9,
-  "summarize": 10
+  "summarize": 10,
+  "visit_url": 11
 }

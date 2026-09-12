@@ -66,6 +66,8 @@ for name, model in models.items():
 
 isolation_forest = IsolationForest(random_state=42)
 isolation_forest.fit(X_train)
+joblib.dump(isolation_forest, ROOT_DIR / "anomaly_model.pkl")
+print(f"Saved anomaly model to {ROOT_DIR / 'anomaly_model.pkl'}")
 
 with (ROOT_DIR / "metrics_report.json").open("w", encoding="utf-8") as report_file:
     json.dump(metrics_report, report_file, indent=2)

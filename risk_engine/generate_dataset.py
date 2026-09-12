@@ -16,6 +16,7 @@ TOOLS = [
     "read_customer_data",
     "delete_records",
     "modify_permissions",
+    "visit_url",
 ]
 SENSITIVE_TOOLS = {
     "send_email",
