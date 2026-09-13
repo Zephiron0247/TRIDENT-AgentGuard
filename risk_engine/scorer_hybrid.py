@@ -121,13 +121,15 @@ def _anomaly_score(events: list[dict]) -> tuple[float, bool]:
 
 
 def _sequence_score(events: list[dict]) -> tuple[float, bool]:
-    """GRU sequence risk probability, or (0.0, False) if unavailable/failing."""
+    """GRU sequence risk probability."""
     try:
         from risk_engine.sequence_model_torch import sequence_risk
 
         score = float(sequence_risk(events))
+        print(f"[GRU DEBUG] events={[e['tool_name'] for e in events]} score={score:.4f}")
         return max(0.0, min(1.0, score)), True
-    except Exception:
+    except Exception as exc:
+        print(f"[GRU ERROR] {type(exc).__name__}: {exc}")
         return 0.0, False
 
 
@@ -200,7 +202,8 @@ def score_trajectory(events: list[dict], stated_goal: str | None = None) -> dict
 
     rule_score = float(rule_score_trajectory(events))
     ml_score, ml_available = _ml_score(events)
-    anomaly_score, anomaly_available = _anomaly_score(events)
+    anomaly_score = 0.0
+    anomaly_available = False
     sequence_score, sequence_available = _sequence_score(events)
     url_result = _url_score(events, stated_goal)
     url_score = float(url_result["url_score"])
@@ -209,7 +212,15 @@ def score_trajectory(events: list[dict], stated_goal: str | None = None) -> dict
     # Authoritative (trusted) signals. URL is included here because it is a
     # deterministic rule signal, but it is capped below KILLSWITCH_FLOOR so it
     # can never single-handedly produce a killswitch.
-    trusted_score = max(rule_score, ml_score, anomaly_score, url_score)
+    #
+    # NOTE: anomaly_score is intentionally left OUT of enforcement for now.
+    # The IsolationForest's score_samples() -> [0,1] mapping is not yet
+    # calibrated for this feature space (it currently saturates near 1.0 even
+    # for clearly benign trajectories, including the very first call of a
+    # brand-new session). It is still computed and returned below so the
+    # dashboard can display it, but — same as the sequence model — it must not
+    # single-handedly decide ALLOW/BLOCK/KILLSWITCH until it's recalibrated.
+    trusted_score = max(rule_score, ml_score, url_score)
 
     # Sequence is purely corroborating: it only adds when it agrees the
     # trajectory is risky AND trusted signals already indicate material risk.
@@ -231,11 +242,11 @@ def score_trajectory(events: list[dict], stated_goal: str | None = None) -> dict
         final_score = min(final_score, KILLSWITCH_FLOOR - 1e-4)
     final_score = max(trusted_score, min(final_score, 1.0))
 
+        # Only authoritative signals can be the dominant signal.
+    # Anomaly is currently advisory/un-calibrated, and sequence is corroborating.
     signal_values = {
         "rule": rule_score,
         "ml": ml_score if ml_available else -1.0,
-        "anomaly": anomaly_score if anomaly_available else -1.0,
-        "sequence": sequence_score if sequence_available else -1.0,
         "url": url_score if url_available else -1.0,
     }
     dominant_signal = max(signal_values, key=signal_values.get)

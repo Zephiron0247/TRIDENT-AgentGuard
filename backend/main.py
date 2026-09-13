@@ -94,19 +94,25 @@ def tool_call(payload: ToolCallRequest) -> dict[str, Any]:
 
     stated_goal = payload.stated_goal
     events: list[dict[str, Any]] = []
-    for call in prior_calls:
+
+    for i, call in enumerate(prior_calls):
         tool_args = call.get("tool_args")
+
         if isinstance(tool_args, str):
             try:
                 tool_args = json.loads(tool_args)
             except (ValueError, TypeError):
                 tool_args = None
+
         events.append(
             {
                 "tool_name": call.get("tool_name"),
                 "tool_args": tool_args,
                 "stated_goal": stated_goal,
-                "timestamp": _parse_timestamp(call.get("called_at")),
+                "timestamp": datetime.fromtimestamp(
+                    i,
+                    tz=_parse_timestamp(payload.timestamp).tzinfo,
+                ),
             }
         )
 

@@ -64,10 +64,20 @@ for name, model in models.items():
         f"f1={metrics['f1']:.4f}"
     )
 
-isolation_forest = IsolationForest(random_state=42)
-isolation_forest.fit(X_train)
+X_benign = [features for features, label in zip(X_train, y_train) if label == 0]
+
+isolation_forest = IsolationForest(
+    n_estimators=200,
+    contamination=0.05,
+    random_state=42,
+)
+isolation_forest.fit(X_benign)
+
 joblib.dump(isolation_forest, ROOT_DIR / "anomaly_model.pkl")
-print(f"Saved anomaly model to {ROOT_DIR / 'anomaly_model.pkl'}")
+print(
+    f"Saved anomaly model to {ROOT_DIR / 'anomaly_model.pkl'} "
+    f"using {len(X_benign)} benign training samples"
+)
 
 with (ROOT_DIR / "metrics_report.json").open("w", encoding="utf-8") as report_file:
     json.dump(metrics_report, report_file, indent=2)

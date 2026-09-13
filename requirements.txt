@@ -1,0 +1,8 @@
+fastapi==0.141.1
+uvicorn==0.52.4
+pyexasol==2.3.1
+scikit-learn==1.9.0
+joblib==1.5.3
+matplotlib
+shap
+pydantic

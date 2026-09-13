@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime, timezone
 from typing import Any
 
 import pyexasol
@@ -132,6 +133,7 @@ def insert_tool_call(
     c = get_connection()
     tool_args_json = json.dumps(tool_args, ensure_ascii=True, default=str)
 
+
     c.execute(
         """
         INSERT INTO tool_calls (
@@ -146,7 +148,18 @@ def insert_tool_call(
             trigger_reason,
             called_at
         )
-        VALUES ({call_id}, {session_id}, {tool_name}, {tool_args}, {risk_score}, {decision}, {explanation}, {is_trigger_step}, {trigger_reason}, CURRENT_TIMESTAMP)
+        VALUES (
+    {call_id},
+    {session_id},
+    {tool_name},
+    {tool_args},
+    {risk_score},
+    {decision},
+    {explanation},
+    {is_trigger_step},
+    {trigger_reason},
+    CURRENT_TIMESTAMP
+)
         """,
         {
             "call_id": call_id,
@@ -160,7 +173,6 @@ def insert_tool_call(
             "trigger_reason": trigger_reason,
         },
     )
-
 
 def update_session_status(session_id: str, status: str) -> None:
     """Update session status and stamp ended_at when transitioning to killed."""
