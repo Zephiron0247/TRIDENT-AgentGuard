@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aegis / AgentGuard Dashboard</title>
+    <title>TRIDENT AgentGuard Dashboard</title>
     <style>
         body { font-family: monospace; background-color: #0a0a0a; color: #e5e7eb; padding: 2rem; }
         .event-card { background: #111827; border: 1px solid #374151; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; }
@@ -12,7 +12,7 @@
     </style>
 </head>
 <body>
-    <h1>Aegis Dashboard v1</h1>
+    <h1>TRIDENT Dashboard v1</h1>
     <div id="feed">Loading events...</div>
 
     <script>
@@ -20,12 +20,12 @@
         // Run `python -m http.server 3000` in your root folder and visit localhost:3000/frontend
         async function loadEvents() {
             try {
-                const response = await fetch('../data/events.json');
+                const response = await fetch('http://127.0.0.1:8000/events');
                 const events = await response.json();
                 const feed = document.getElementById('feed');
                 feed.innerHTML = events.map(evt => `
                     <div class="event-card">
-                        <div style="font-size: 0.8rem; color: #6b7280">${evt.timestamp}</div>
+                        <div style="font-size: 0.8rem; color: #6b7280">${evt.called_at}</div>
                         <strong>${evt.tool_name}</strong>
                         <span class="badge ${evt.decision}"> [${evt.decision} - Risk: ${evt.risk_score}]</span>
                         <div style="font-size: 0.9rem; margin-top: 0.5rem; color: #9ca3af;">Args: ${evt.tool_args}</div>
@@ -36,6 +36,7 @@
             }
         }
         loadEvents();
+        setInterval(loadEvents, 1500);
     </script>
 </body>
 </html>

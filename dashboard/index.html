@@ -216,16 +216,21 @@
 
     /* GRID LAYOUT: 1920x1080 OPTIMIZED */
     .main-grid {
-      display: grid;
-      grid-template-columns: 2.3fr 1fr;
-      gap: 1rem;
-    }
+    display: grid;
+    grid-template-columns: minmax(0, 2.3fr) minmax(320px, 1fr);
+    gap: 1rem;
+}
+
+.main-grid > * {
+    min-width: 0;
+}
 
     @media (max-width: 1400px) {
       .main-grid { grid-template-columns: 1fr; }
     }
 
     .panel {
+      min-width: 0;
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: 8px;
@@ -494,10 +499,14 @@
 
     /* BOTTOM GRID: SESSION TRAJECTORY & ARCHITECTURE */
     .bottom-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1rem;
+}
+
+.bottom-grid > * {
+    min-width: 0;
+}
 
     @media (max-width: 1100px) {
       .bottom-grid { grid-template-columns: 1fr; }
@@ -616,10 +625,167 @@
       color: var(--text-dim);
       font-style: italic;
     }
+    .agent-control {
+    margin: 18px 22px;
+    padding: 18px;
+    background: #111827;
+    border: 1px solid #243244;
+    border-radius: 12px;
+}
+
+.control-title {
+    color: #22c7ff;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.control-subtitle {
+    margin-top: 4px;
+    color: #71809a;
+    font-size: 12px;
+}
+
+.control-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.control-row select,
+.control-row input {
+    background: #0b1220;
+    color: #e5edf7;
+    border: 1px solid #2b3a4f;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: monospace;
+}
+
+.control-row select {
+    width: 190px;
+}
+
+.control-row input {
+    flex: 1;
+}
+
+.control-row button {
+    background: #0b1d2b;
+    color: #22c7ff;
+    border: 1px solid #1f7899;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-family: monospace;
+    font-weight: 700;
+}
+
+.control-row button:hover {
+    background: #102d40;
+}
+
+.call-result {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #0b1220;
+    border-radius: 8px;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.call-result.success {
+    color: #10b981;
+}
+
+.call-result.blocked {
+    color: #f59e0b;
+}
+
+.call-result.killswitch {
+    color: #ef4444;
+}
+.agent-console {
+    margin: 0 0 18px 0;
+    padding: 16px 20px;
+    background: #0f1725;
+    border: 1px solid #26354a;
+    border-radius: 12px;
+}
+
+.agent-console-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.agent-console-title {
+    color: #22c7ff;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.agent-console-subtitle {
+    color: #71809a;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.agent-console-row {
+    display: flex;
+    gap: 10px;
+}
+
+.agent-console-row select,
+.agent-console-row input {
+    background: #0a1220;
+    border: 1px solid #2a3b52;
+    color: #e5edf7;
+    border-radius: 8px;
+    padding: 11px 12px;
+    font-family: monospace;
+}
+
+.agent-console-row select {
+    width: 210px;
+}
+
+.agent-console-row input {
+    flex: 1;
+}
+
+.console-btn {
+    border: 1px solid #1d91b8;
+    background: #092337;
+    color: #22c7ff;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: monospace;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.console-btn.secondary {
+    border-color: #46556b;
+    background: #111a28;
+    color: #a8b4c5;
+}
+
+.console-status {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #0a1220;
+    color: #93a4bb;
+    font-family: monospace;
+    font-size: 13px;
+}
   </style>
 </head>
 <body>
-
+   
   <div class="app-container">
     
     <!-- HEADER -->
@@ -666,7 +832,47 @@
         </div>
       </div>
     </header>
+    <section id="agentConsole" class="agent-console">
+    <div class="agent-console-header">
+        <div>
+            <div class="agent-console-title">LIVE AGENT CONSOLE</div>
+            <div class="agent-console-subtitle">
+                Submit a tool invocation through TRIDENT
+            </div>
+        </div>
 
+        <button id="newSessionBtn" class="console-btn secondary">
+            NEW SESSION
+        </button>
+    </div>
+
+    <div class="agent-console-row">
+        <select id="toolSelect">
+            <option value="search_docs">search_docs</option>
+            <option value="read_file">read_file</option>
+            <option value="summarize">summarize</option>
+            <option value="send_email">send_email</option>
+            <option value="read_customer_data">read_customer_data</option>
+            <option value="access_credentials">access_credentials</option>
+            <option value="export_database">export_database</option>
+            <option value="visit_url">visit_url</option>
+        </select>
+
+        <input
+            id="toolArgs"
+            type="text"
+            placeholder='{"query":"Q3 report draft"}'
+        />
+
+        <button id="sendToolCallBtn" class="console-btn">
+            SEND TOOL CALL
+        </button>
+    </div>
+
+    <div id="consoleStatus" class="console-status">
+        Ready. Start a new session before sending a tool call.
+    </div>
+</section>
     <!-- MAIN GRID: TELEMETRY & THREAT ANALYSIS -->
     <div class="main-grid">
       
@@ -864,7 +1070,6 @@
     </div>
 
   </div>
-
   <script>
     const API_URL = "http://localhost:8000/events";
     const POLL_MS = 2000;
@@ -1436,6 +1641,131 @@
     // Initial load & poll loop
     fetchEvents();
     setInterval(fetchEvents, POLL_MS);
+    
+let currentSessionId = null;
+
+const toolSelect = document.getElementById("toolSelect");
+const toolArgs = document.getElementById("toolArgs");
+const sendToolCallBtn = document.getElementById("sendToolCallBtn");
+const newSessionBtn = document.getElementById("newSessionBtn");
+const consoleStatus = document.getElementById("consoleStatus");
+
+function startWebSession() {
+    currentSessionId = "web-demo-" + crypto.randomUUID();
+
+    consoleStatus.textContent =
+        "Session started: " + currentSessionId;
+}
+
+newSessionBtn.addEventListener("click", startWebSession);
+
+sendToolCallBtn.addEventListener("click", async () => {
+    if (!currentSessionId) {
+        startWebSession();
+    }
+
+    let parsedArgs = {};
+
+    if (toolArgs.value.trim()) {
+        try {
+            parsedArgs = JSON.parse(toolArgs.value);
+        } catch {
+            consoleStatus.textContent =
+                "Invalid JSON in tool arguments.";
+            return;
+        }
+    }
+
+    consoleStatus.textContent =
+        "TRIDENT is evaluating: " + toolSelect.value + "...";
+
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:8000/tool-call",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    agent_id: "web-demo",
+                    stated_goal:
+                        "Demonstrate safe autonomous agent execution",
+                    tool_name: toolSelect.value,
+                    tool_args: parsedArgs,
+                    timestamp: new Date().toISOString()
+                })
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.detail || "Tool call rejected by backend"
+            );
+        }
+
+        consoleStatus.textContent =
+    `${result.decision} | Risk ${Number(result.risk_score).toFixed(2)}`;
+
+activeSessionFilter = currentSessionId;
+
+await fetchEvents();
+
+const latestEvent = rawEvents.find(
+    e => e.session_id === currentSessionId
+);
+
+if (latestEvent) {
+    activeCallId = latestEvent.call_id;
+    renderAll();
+}
+        // Refresh the dashboard immediately after the decision.
+        if (typeof loadDashboardData === "function") {
+            loadDashboardData();
+        } else if (typeof loadEvents === "function") {
+            loadEvents();
+        }
+
+    } catch (error) {
+        consoleStatus.textContent =
+            "Backend error: " + error.message;
+    }
+});
   </script>
 </body>
+<div id="agent-control" class="agent-control">
+    <div>
+        <div class="control-title">AGENT CONTROL</div>
+        <div class="control-subtitle">Submit a tool invocation through TRIDENT</div>
+    </div>
+
+    <div class="control-row">
+        <select id="toolSelect">
+            <option value="search_docs">search_docs</option>
+            <option value="read_file">read_file</option>
+            <option value="summarize">summarize</option>
+            <option value="send_email">send_email</option>
+            <option value="read_customer_data">read_customer_data</option>
+            <option value="access_credentials">access_credentials</option>
+            <option value="export_database">export_database</option>
+            <option value="visit_url">visit_url</option>
+        </select>
+
+        <input
+            id="toolArgs"
+            type="text"
+            placeholder='Tool arguments JSON, e.g. {"query":"Q3 report"}'
+        />
+
+        <button id="sendToolCall">SEND TOOL CALL</button>
+        <button id="newSession">NEW SESSION</button>
+    </div>
+
+    <div id="callResult" class="call-result">
+        Ready — select a tool and submit an invocation.
+    </div>
+</div>
 </html>
