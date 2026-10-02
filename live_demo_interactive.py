@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from urllib import error, request
 from uuid import uuid4
 
-TOOL_CALL_URL = "http://localhost:8000/tool-call"
+TOOL_CALL_URL = "http://localhost:8080/tool-call"
 
 TOOLS = {
     "1": ("search_docs", {"query": "Q3 report draft"}),

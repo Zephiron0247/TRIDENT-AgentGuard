@@ -1071,7 +1071,7 @@
 
   </div>
   <script>
-    const API_URL = "http://localhost:8000/events";
+    const API_URL = "http://localhost:8080/events";
     const POLL_MS = 2000;
 
     let rawEvents = [];
@@ -1681,7 +1681,7 @@ sendToolCallBtn.addEventListener("click", async () => {
 
     try {
         const response = await fetch(
-            "http://127.0.0.1:8000/tool-call",
+            "http://127.0.0.1:8080/tool-call",
             {
                 method: "POST",
                 headers: {

@@ -20,7 +20,7 @@
         // Run `python -m http.server 3000` in your root folder and visit localhost:3000/frontend
         async function loadEvents() {
             try {
-                const response = await fetch('http://127.0.0.1:8000/events');
+                const response = await fetch('http://127.0.0.1:8080/events');
                 const events = await response.json();
                 const feed = document.getElementById('feed');
                 feed.innerHTML = events.map(evt => `

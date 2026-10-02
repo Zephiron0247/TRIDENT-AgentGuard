@@ -5,7 +5,7 @@ from typing import Any
 from urllib import error, request
 from uuid import uuid4
 
-TOOL_CALL_URL = "http://localhost:8000/tool-call"
+TOOL_CALL_URL = "http://localhost:8080/tool-call"
 
 
 def _iso(ts: datetime) -> str:
