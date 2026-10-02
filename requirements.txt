@@ -6,3 +6,4 @@ joblib==1.5.3
 matplotlib
 shap
 pydantic
+psycopg2-binary>=2.9.9
