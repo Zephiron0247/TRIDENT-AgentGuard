@@ -1071,7 +1071,7 @@
 
   </div>
   <script>
-    const API_URL = "http://localhost:8080/events";
+    const API_URL = "https://trident-backend1.onrender.com/events";
     const POLL_MS = 2000;
 
     let rawEvents = [];
@@ -1681,7 +1681,7 @@ sendToolCallBtn.addEventListener("click", async () => {
 
     try {
         const response = await fetch(
-            "http://127.0.0.1:8080/tool-call",
+            "https://trident-backend1.onrender.com/tool-call",
             {
                 method: "POST",
                 headers: {
@@ -1736,36 +1736,4 @@ if (latestEvent) {
 });
   </script>
 </body>
-<div id="agent-control" class="agent-control">
-    <div>
-        <div class="control-title">AGENT CONTROL</div>
-        <div class="control-subtitle">Submit a tool invocation through TRIDENT</div>
-    </div>
-
-    <div class="control-row">
-        <select id="toolSelect">
-            <option value="search_docs">search_docs</option>
-            <option value="read_file">read_file</option>
-            <option value="summarize">summarize</option>
-            <option value="send_email">send_email</option>
-            <option value="read_customer_data">read_customer_data</option>
-            <option value="access_credentials">access_credentials</option>
-            <option value="export_database">export_database</option>
-            <option value="visit_url">visit_url</option>
-        </select>
-
-        <input
-            id="toolArgs"
-            type="text"
-            placeholder='Tool arguments JSON, e.g. {"query":"Q3 report"}'
-        />
-
-        <button id="sendToolCall">SEND TOOL CALL</button>
-        <button id="newSession">NEW SESSION</button>
-    </div>
-
-    <div id="callResult" class="call-result">
-        Ready — select a tool and submit an invocation.
-    </div>
-</div>
 </html>
