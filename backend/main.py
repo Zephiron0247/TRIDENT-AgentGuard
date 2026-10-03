@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from backend.exasol_client import (
-    get_connection,
+    get_session_status,
     get_recent_events,
     get_session_calls,
     insert_session,
@@ -31,10 +31,10 @@ app = FastAPI(title="AgentGuard API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["https://trident-agentguard.onrender.com"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
 
@@ -49,22 +49,6 @@ def _parse_timestamp(ts: Any) -> datetime:
     return datetime.fromisoformat(normalized)
 
 
-def _get_session_status(session_id: str) -> str | None:
-    c = get_connection()
-    stmt = c.execute(
-        """
-        SELECT status
-        FROM sessions
-        WHERE session_id = {session_id}
-        """,
-        {"session_id": session_id},
-    )
-    row = stmt.fetchone()
-    if not row:
-        return None
-    return row[0]
-
-
 def _decision_from_score(score: float) -> str:
     if score < 0.4:
         return "allow"
@@ -77,20 +61,25 @@ def _decision_from_score(score: float) -> str:
 
 @app.post("/tool-call")
 def tool_call(payload: ToolCallRequest) -> dict[str, Any]:
-    status = _get_session_status(payload.session_id)
-
+    status = get_session_status(payload.session_id)
     if status and status.lower() == "killed":
         return {
             "decision": "killswitch",
             "risk_score": 1.0,
-            "reason": "session already terminated",
+            "trusted_score": 1.0,
+            "dominant_signal": "rule",
+            "rule_score": 1.0,
+            "ml_score": 0.0,
+            "anomaly_score": 0.0,
+            "sequence_score": 0.0,
+            "url_score": 0.0,
             "explanation": "The session was already terminated by the killswitch.",
+            "is_trigger_step": False,
+            "trigger_reason": "session already terminated",
         }
-
+    prior_calls = get_session_calls(payload.session_id)
     if status is None:
         insert_session(payload.session_id, payload.agent_id, payload.stated_goal)
-
-    prior_calls = get_session_calls(payload.session_id)
 
     stated_goal = payload.stated_goal
     events: list[dict[str, Any]] = []

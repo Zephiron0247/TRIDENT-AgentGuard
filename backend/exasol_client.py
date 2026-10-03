@@ -36,6 +36,16 @@ def update_session_status(session_id: str, status: str):
             )
         conn.commit()
 
+def get_session_status(session_id: str) -> str | None:
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT status FROM sessions WHERE session_id = %s;",
+                (session_id,),
+            )
+            row = cur.fetchone()
+            return row[0] if row else None
+
 def get_session_calls(session_id: str) -> list[dict]:
     with get_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
