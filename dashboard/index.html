@@ -1699,12 +1699,22 @@ sendToolCallBtn.addEventListener("click", async () => {
             }
         );
 
-        const result = await response.json();
+        const responseText = await response.text();
+        let result = {};
+        try {
+            result = responseText ? JSON.parse(responseText) : {};
+        } catch {
+            result = { detail: responseText };
+        }
 
         if (!response.ok) {
-            throw new Error(
-                result.detail || "Tool call rejected by backend"
-            );
+            const details = result.detail || result.message || responseText || "No response body";
+            console.error("Tool call failed:", {
+                status: response.status,
+                statusText: response.statusText,
+                details
+            });
+            throw new Error(`HTTP ${response.status} ${response.statusText}: ${details}`);
         }
 
         consoleStatus.textContent =
@@ -1730,6 +1740,7 @@ if (latestEvent) {
         }
 
     } catch (error) {
+        console.error("Tool call request error:", error);
         consoleStatus.textContent =
             "Backend error: " + error.message;
     }
